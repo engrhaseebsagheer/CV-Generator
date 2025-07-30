@@ -226,7 +226,7 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     pdf = FPDF()
     pdf.set_margins(0, 0, 0)
     pdf.add_page()
-    print("Starting working")
+   
     # Fonts
     pdf.add_font("PoppinsLarger", "", "Poppins/Poppins-Bold.ttf", uni=True)
     pdf.add_font("PoppinsRegular", "", "Poppins/Poppins-Regular.ttf", uni=True)
@@ -242,7 +242,7 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     pdf.set_text_color(255, 255, 255)
     pdf.cell(ln=True, w=pdf.w, h=4, border=False)
     pdf.cell(5)
-    user_name = "Haseeb Sagheer"
+    user_name = u_name
     pdf.cell(w=pdf.get_string_width(user_name), h=13, txt=user_name, border=False, align="L", ln=True)
 
     # White line under title
@@ -261,27 +261,34 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     pdf.set_font("PoppinsBold", size=10)
     pdf.cell(w=28, h=height_cell, txt="Place of Birth:", border=False, align="C", ln=False)
     pdf.set_font("PoppinsRegular", size=10)
-    pdf.cell(w=25, h=height_cell, txt="Bhimber", border=False, ln=False)
+    pdf.cell(w=pdf.get_string_width(u_b_place), h=height_cell, txt=u_b_place, border=False, ln=False)
 
     pdf.cell(w=8, h=height_cell, txt="-", border=False, ln=False)
     pdf.set_font("PoppinsBold", size=10)
     pdf.cell(w=15, h=height_cell, txt="Phone:", border=False, align="C", ln=False)
     pdf.set_font("PoppinsRegular", size=10)
-    pdf.cell(w=32, h=height_cell, txt="+923082496103", border=False, ln=False)
+    pdf.cell(w=pdf.get_string_width(u_phone), h=height_cell, txt=u_phone, border=False, ln=False)
 
     pdf.cell(w=6, h=height_cell, txt="-", border=False, ln=False)
     pdf.set_font("PoppinsBold", size=10)
     pdf.cell(w=15, h=height_cell, txt="Email:", border=False, align="C", ln=False)
     pdf.set_font("PoppinsRegular", size=10)
-    pdf.cell(w=75, h=height_cell, txt="engrhaseebsagheer@gmail.com", border=False, ln=True)
+    pdf.cell(w=pdf.get_string_width(u_email), h=height_cell, txt=u_email, border=False, ln=True)
 
     # Info Row 2
     pdf.cell(50)
     pdf.set_font("PoppinsBold", size=10)
     pdf.cell(w=20, h=height_cell, txt="Website:", border=False, align="C", ln=False)
     pdf.set_font("PoppinsRegular", size=10)
-    pdf.cell(w=20, h=height_cell, txt="Click To Visit", border=False, align="C", ln=False,
-             link="https://haseebstudios.com/")
+    if not u_website:
+        pdf.cell(w=20, h=height_cell, txt="None", border=False, align="C", ln=False,
+             link="https://haseebsagheer.com/")
+    else:
+        pdf.cell(w=20, h=height_cell, txt="None", border=False, align="C", ln=False,
+             link=u_website)
+
+
+    
 
     pdf.cell(10)
     pdf.cell(w=15, h=height_cell, txt="-", border=False, ln=False)
@@ -289,7 +296,7 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     pdf.cell(w=17, h=height_cell, txt="Linkedin:", border=False, align="C", ln=False)
     pdf.set_font("PoppinsRegular", size=10)
     pdf.cell(w=32, h=height_cell, txt="View Profile", border=False, ln=True,
-             link="https://www.linkedin.com/in/haseeb-sagheer/")
+             link=u_linkedin)
 
     # About Myself Section
     pdf.cell(w=5, h=7, ln=True)
@@ -315,7 +322,7 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     pdf.multi_cell(
         w=pdf.w - (left_margin + 7) - right_margin,
         h=6,
-        txt="""Software engineer with expertise in game development, AI, and software systems.""",
+        txt=fix_multiline_paragraph(u_about),
         border=False,
         align="L"
     )
@@ -336,38 +343,18 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     pdf.set_font("PoppinsRegular", size=10)
     pdf.set_xy(pdf.x, pdf.get_y() - 1)
 
-    generate_experience_section(
-        pdf,
-        occupation="Fiverr",
-        place="ISLAMABAD, Pakistan",
-        position="Freelancer",
-        start_date="07/25/2025",
-        end_date="Current",
-        description_text=""" A skilled and versatile freelancer offering professional game development and data science services. Experienced in
-    developing 2D and 3D games using Unity and C#, with a strong focus on gameplay mechanics, multiplayer features
-    (Photon), and backend integration using Firebase and other tools. Also proficient in Python for data analysis, machine
-    learning model development, and automation tasks. Delivers high-quality, scalable solutions tailored to client needs
-    across both gaming and data-driven projects.
-    - Collaborated with clients to gather requirements and deliver tailored software solutions.
-    - Designed and built systems in C++, C#, and Python with a focus on DS, algorithms, and optimization.
-    - Created a NADRA system prototype in C++ featuring secure data handling and fast search logic."""
-    )
-    generate_experience_section(
-        pdf,
-        occupation="AL-KHIDMAT FOUNDATION",
-        place="ISLAMABAD, Pakistan",
-        position="VOLUNTEER",
-        start_date="07/25/2025",
-        end_date="09/25/2025",
-        description_text=""" Volunteered to support Alkhidmat Foundation's initiative for orphan care by collecting and organizing data to help
-    connect children with essential support services.
-    - Identified and documented information of orphan children in underserved communities.
-    - Ensured accurate and complete data collection to assist in distributing aid and educational resources.
-    - Coordinated with local families and community leaders to verify background details.
-    - Submitted organized reports to the foundation to help facilitate targeted support and follow-up actions.
-    - Contributed to a meaningful social cause by helping improve the lives of vulnerable children.
-    """
-    )
+    
+    for (e_company,e_place,e_position,e_start_date,e_end_date,e_status,e_description) in zip(u_company,u_c_place,u_position,u_start_date,u_end_date,u_status_date,u_c_description):
+        end_date_new = "nothing"
+        if not e_end_date or not e_end_date.strip():
+            end_date_new = "Present"
+        else:
+            end_date_new = e_end_date
+
+        generate_experience_section(pdf,e_company,e_place,e_position,e_start_date,end_date_new,e_description)
+        
+
+   
 
     # About Education and training section
     pdf.cell(w=5, h=4, ln=True)
@@ -385,42 +372,10 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     pdf.set_draw_color(0, 75, 128)
     line_y2 = pdf.get_y() - 2 # Current Y BEFORE paragraph
     pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
-    generate_education_section(
-        pdf,
-        start_date="12/12/2025",
-        end_date="12/12/2027",
-        location="Islamabad, Pakistan",
-        degree_title="BS Software Engineering",
-        institute_name="Capital University of Science and Technology",
-        modules_text="""The major modules I studied during this degree are:
-    1) Data Structures
-    2) Web Engineering
-    3) Artificial Intelligence
-    4) Software Engineering
-    5) Parallel and Distributed Computing
-    6) Information Security and Network Security""",
-        final_grade="3.22/4.0"
-    )
-    generate_education_section(
-        pdf,
-        start_date="12/12/2022",
-        end_date="12/12/2024",
-        location="Barnala, Azad Jammu & Kashmir",
-        degree_title="Intermediate",
-        institute_name="Dawn Science College Barnala",
-        modules_text="""""",
-        final_grade="794/1100"
-    )
-    generate_education_section(
-        pdf,
-        start_date="12/12/2021",
-        end_date="12/12/2022",
-        location="Sardari, Azad Jammu & Kashmir",
-        degree_title="Chanar Public Model School",
-        institute_name="Capital University of Science and Technology",
-        modules_text="""""",
-        final_grade="648/1100"
-    )
+   #def generate_education_section(pdf, start_date, end_date, location, degree_title, institute_name, modules_text, final_grade):
+
+    for (ed_start_date,ed_end_date,ed_i_location,ed_degree_title,ed_insitute_name,ed_module_text,ed_final_grade) in zip(u_education_start_date,u_education_end_date,u_insititue_place,u_education_program,u_education_inititue,u_education_description,u_education_grade):
+        generate_education_section(pdf,ed_start_date,ed_end_date,ed_i_location,ed_degree_title,ed_insitute_name,ed_module_text,ed_final_grade)
     pdf.cell(w=5, h=-1, ln=True)
     pdf.cell(5)
 
@@ -439,7 +394,7 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     pdf.set_font("PoppinsRegular",size=13)
     pdf.cell(w=12,h=3)
     pdf.cell(txt="Mother Tongue(s): ",w=pdf.get_string_width("Mother Tongue(s): "),h=height_cell)
-    language = "Urdu"
+    language = u_mother_tongue
     language= language.upper()
     pdf.set_font("PoppinsBold",size=12)
     pdf.cell(txt=language,w=pdf.get_string_width(language),h=height_cell,ln=True)
@@ -447,15 +402,36 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     pdf.set_font("PoppinsRegular",size=12)
     pdf.cell(txt="Other Language(s):",w=pdf.get_string_width("Other Language(s):"),h=height_cell)
     pdf.set_xy(pdf.x,pdf.y+8)
-    render_language_skills_table(
-        pdf,
-        lang="English",
-        listening="C1",
-        reading="C1",
-        spoken_prod="B2",
-        spoken_inter="B2",
-        writing="B2"
-    )
+    for (n_lang,n_list,n_reading,n_spoken,n_inter) in zip(u_other_langauges,u_listeing,u_reading,u_spoken,u_spoken_inter):
+
+        count = 0
+        if n_lang == "C1":
+            count += 1
+        if n_reading == "C1":
+            count += 1
+        if n_spoken == "C1":
+            count += 1
+        if n_inter == "C1":
+            count += 1
+
+  
+     
+
+    
+        writing_test = "B1"
+        if(count == 1):
+         writing_test = "B1"
+        elif(count == 2):
+         writing_test = "B2"
+        elif(count == 3):
+         writing_test = "C1"
+        elif(count == 4):
+         writing_test = "C2"
+        else:
+         writing_test = "A2"
+        
+        render_language_skills_table(pdf,n_lang,n_list,n_reading,n_spoken,n_inter,writing_test)
+    
 
     pdf.cell(w=5, h=2, ln=True)
     pdf.cell(5)
@@ -483,7 +459,7 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     line_y2 = pdf.get_y() - 3 # Current Y BEFORE paragraph
     pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
     pdf.set_font("PoppinsRegular", size=12)
-    skills = "Adaptability, Problem-Solving, Attention to Detail, Time Management, Effective Communication"
+    skills = u_soft_skills
     final_skills= skills.split(',')
 
     final_skills = list(map(str.strip,final_skills))
@@ -518,7 +494,7 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     line_y2 = pdf.get_y() - 3 # Current Y BEFORE paragraph
     pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
     pdf.set_font("PoppinsRegular", size=12)
-    language_skills = "C#, C++, PHP, Java, Python"
+    language_skills = u_programming_skills
     language_final_skills= language_skills.split(',')
 
     language_final_skills = list(map(str.strip,language_final_skills))
@@ -543,7 +519,7 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
 
     pdf.set_y(pdf.get_y() + 2)
     pdf.set_font("PoppinsRegular",size=12)
-    
+
     def add_project(pdf, data):
         pdf.set_x(left_margin + 6.5)
         pdf.multi_cell(
@@ -554,9 +530,10 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
             align="L"
         )
 
-    description = """Species Detection Model for Margalla Hills: Developed a CNN-based model to classify species using a custom dataset, achieving 80% accuracy."""
-    refined_description = fix_multiline_paragraph(description)
-    add_project(pdf, refined_description)
+
+    for project in u_projects:
+        add_project(pdf,fix_multiline_paragraph(project))
+   
 
     def add_link(pdf,link2):
         pdf.cell(12,4)
@@ -564,15 +541,14 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
         pdf.cell(w=pdf.get_string_width("Link: "),h=height_cell,txt="Link: ")
         pdf.set_font("PoppinsRegular", size=12)
         pdf.cell(w=pdf.get_string_width(link2), h = height_cell, txt = link2,link=link2,ln=True)
+    links = u_links
+    for link in links:
+        add_link(pdf,link)
 
-    add_link(pdf,"https://haseebstudios.com/")
-    add_link(pdf,"https://haseebstudios.com/")
-    add_link(pdf,"https://haseebstudios.com/")
     
     pdf.output("fixed_full_width.pdf")
 
-# Call the function to generate the CV
-from flask import Flask, render_template, request
+
 
 app = Flask(__name__)
 
