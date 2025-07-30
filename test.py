@@ -44,22 +44,8 @@ def generate_experience_section(pdf, occupation, place, position, start_date, en
     right_margin = 6
     height_cell = 7
 
-    # Section heading
-    pdf.cell(w=5, h=-1, ln=True)
-    pdf.cell(5)
-    pdf.set_text_color(0, 0, 0)
-    pdf.set_font("Emoji", size=12)
-    pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False, border=False)
-    pdf.set_font("PoppinsLarger", size=12)
-    pdf.cell(w=pdf.w, h=height_cell * 2, txt="WORK EXPERIENCE", ln=True, align="L", border=False)
-    pdf.set_text_color(0, 0, 50)
-
-    # Section divider line
-    line_y2 = pdf.get_y() - 3
-    pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
-    pdf.set_font("PoppinsRegular", size=10)
-    pdf.set_xy(left_margin + 6.5, pdf.get_y() - 1)
-
+    pdf.cell(w=12)
+    pdf.set_xy(pdf.x,pdf.y +2.5)
     # Occupation and Location
     occupation = occupation.upper() + " -   "
     pdf.set_font("Emoji", size=12)
@@ -106,7 +92,7 @@ def generate_experience_section(pdf, occupation, place, position, start_date, en
 
 def generate_education_section(pdf, start_date, end_date, location, degree_title, institute_name, modules_text, final_grade):
     # First line: Date + Location
-    pdf.cell(12)
+    pdf.cell(w=12,h=2)
     pdf.set_xy(pdf.x,pdf.y+3)
     pdf.set_text_color(0, 0, 0)
     pdf.set_font("PoppinsRegular", size=10)
@@ -331,7 +317,21 @@ pdf.multi_cell(
     border=False,
     align="L"
 )
+ # Section heading
+pdf.cell(w=5, h=-1, ln=True)
+pdf.cell(5)
+pdf.set_text_color(0, 0, 0)
+pdf.set_font("Emoji", size=12)
+pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False, border=False)
+pdf.set_font("PoppinsLarger", size=12)
+pdf.cell(w=pdf.w, h=height_cell * 2, txt="WORK EXPERIENCE", ln=True, align="L", border=False)
+pdf.set_text_color(0, 0, 50)
 
+    # Section divider line
+line_y2 = pdf.get_y() - 3
+pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
+pdf.set_font("PoppinsRegular", size=10)
+pdf.set_xy(pdf.x, pdf.get_y() - 1)
 
 generate_experience_section(
     pdf,
@@ -369,7 +369,7 @@ connect children with essential support services.
 
 
 # About Education and training section
-pdf.cell(w=5, h=7, ln=True)
+pdf.cell(w=5, h=4, ln=True)
 pdf.cell(5)
 
 pdf.set_text_color(0, 0, 0)
@@ -435,6 +435,17 @@ pdf.set_line_width(0.8)
 pdf.set_draw_color(0, 75, 128)
 line_y2 = pdf.get_y() - 3 # Current Y BEFORE paragraph
 pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
+pdf.set_font("PoppinsRegular",size=13)
+pdf.cell(w=12,h=3)
+pdf.cell(txt="Mother Tongue(s): ",w=pdf.get_string_width("Mother Tongue(s): "),h=height_cell)
+language = "Urdu"
+language= language.upper()
+pdf.set_font("PoppinsBold",size=12)
+pdf.cell(txt=language,w=pdf.get_string_width(language),h=height_cell,ln=True)
+pdf.cell(w=12,h=6)
+pdf.set_font("PoppinsRegular",size=12)
+pdf.cell(txt="Other Language(s):",w=pdf.get_string_width("Other Language(s):"),h=height_cell)
+pdf.set_xy(pdf.x,pdf.y+8)
 render_language_skills_table(
     pdf,
     lang="English",
@@ -444,5 +455,121 @@ render_language_skills_table(
     spoken_inter="B2",
     writing="B2"
 )
-print(pdf.w)
+
+pdf.cell(w=5, h=2, ln=True)
+pdf.cell(5)
+pdf.set_text_color(0, 0, 0)
+pdf.set_font("Emoji", size=12)
+pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False)
+
+pdf.set_font("PoppinsLarger", size=12)
+pdf.cell(w=pdf.w, h=height_cell * 2, txt="COMMUNICATION AND INTERPERSONAL SKILLS", ln=True, align="L")
+
+# Draw Line ABOVE the paragraph
+pdf.set_line_width(0.8)
+pdf.set_draw_color(0, 75, 128)
+line_y2 = pdf.get_y() - 2 # Current Y BEFORE paragraph
+pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
+
+
+
+
+pdf.set_font("PoppinsBold", size=12)
+pdf.set_text_color(0,0,50)
+pdf.cell(12)
+pdf.cell(w=pdf.w, h=height_cell * 2, txt="Soft Skills", ln=True, align="L")
+
+# Draw Line ABOVE the paragraph
+pdf.set_line_width(0.5)
+pdf.set_draw_color(0, 75, 128)
+line_y2 = pdf.get_y() - 3 # Current Y BEFORE paragraph
+pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
+pdf.set_font("PoppinsRegular", size=12)
+skills = "Adaptability, Problem-Solving, Attention to Detail, Time Management, Effective Communication"
+final_skills= skills.split(',')
+
+final_skills = list(map(str.strip,final_skills))
+pdf.set_xy(pdf.x,pdf.y+2)
+for item in final_skills:
+    pdf.cell(16)
+    pdf.cell(w=pdf.get_string_width("• "+item),h=height_cell,txt="• "+item,ln=True)
+
+
+
+pdf.cell(w=5, h=2, ln=True)
+pdf.cell(5)
+pdf.set_text_color(0, 0, 0)
+pdf.set_font("Emoji", size=12)
+pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False)
+
+pdf.set_font("PoppinsLarger", size=12)
+pdf.cell(w=pdf.w, h=height_cell * 2, txt="PROGRAMMING SKILLS", ln=True, align="L")
+
+# Draw Line ABOVE the paragraph
+pdf.set_line_width(0.8)
+pdf.set_draw_color(0, 75, 128)
+line_y2 = pdf.get_y() - 2 # Current Y BEFORE paragraph
+pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
+
+
+
+
+pdf.set_font("PoppinsBold", size=12)
+pdf.set_text_color(0,0,50)
+pdf.cell(12)
+pdf.cell(w=pdf.w, h=height_cell * 2, txt="Languages", ln=True, align="L")
+
+# Draw Line ABOVE the paragraph
+pdf.set_line_width(0.5)
+pdf.set_draw_color(0, 75, 128)
+line_y2 = pdf.get_y() - 3 # Current Y BEFORE paragraph
+pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
+pdf.set_font("PoppinsRegular", size=12)
+language_skills = "C#, C++, PHP, Java, Python"
+language_final_skills= language_skills.split(',')
+
+language_final_skills = list(map(str.strip,language_final_skills))
+pdf.set_xy(pdf.x,pdf.y+2)
+print(pdf.y)
+for item in language_final_skills:
+    pdf.set_x(20)  # consistent horizontal indent instead of pdf.cell(16)
+    pdf.cell(w=pdf.get_string_width("• " + item) + 1, h=height_cell, txt="• " + item, ln=True, border=False)
+
+print(pdf.y)
+pdf.set_y(pdf.get_y() + 2)  # Adjust this value if needed
+
+# Projects Heading
+pdf.set_font("PoppinsBold", size=12)
+pdf.set_text_color(0, 0, 50)
+pdf.cell(12)
+pdf.cell(w=pdf.w, h=height_cell, txt="Projects", ln=True, align="L", border=False)
+
+# Blue line under heading
+pdf.set_line_width(0.5)
+pdf.set_draw_color(0, 75, 128)
+line_y2 = pdf.get_y() + 0.5
+pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
+
+# Align Y just below line
+
+pdf.set_y(pdf.get_y() + 2)
+# Function with correct X alignment
+pdf.set_font("PoppinsRegular",size=12)
+def add_project(pdf, data):
+    pdf.set_x(left_margin + 6.5)  # Fix alignment
+    pdf.multi_cell(
+        w=pdf.w - (left_margin + 7) - right_margin,
+        h=6,
+        txt=data,
+        border=False,
+        align="L"
+    )
+
+# Example description
+description = """Species Detection Model for Margalla Hills: Developed a CNN-based model to classify species using a custom dataset, achieving 80% accuracy."""
+refined_description = fix_multiline_paragraph(description)
+
+add_project(pdf, refined_description)
+
+
 pdf.output("fixed_full_width.pdf")
