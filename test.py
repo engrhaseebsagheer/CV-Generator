@@ -1,3 +1,5 @@
+
+
 from fpdf import FPDF
 import re
 
@@ -40,6 +42,7 @@ def fix_multiline_paragraph(text):
 
 
 def generate_experience_section(pdf, occupation, place, position, start_date, end_date, description_text):
+ 
     left_margin = 6
     right_margin = 6
     height_cell = 7
@@ -92,28 +95,29 @@ def generate_experience_section(pdf, occupation, place, position, start_date, en
 
 def generate_education_section(pdf, start_date, end_date, location, degree_title, institute_name, modules_text, final_grade):
     # First line: Date + Location
+    
     pdf.cell(w=12,h=2)
     pdf.set_xy(pdf.x,pdf.y+3)
     pdf.set_text_color(0, 0, 0)
     pdf.set_font("PoppinsRegular", size=10)
     education_duration = f"{start_date} - {end_date} | {location}"
-    pdf.cell(w=pdf.get_string_width(education_duration), txt=education_duration, h=height_cell, border=False, align="L", ln=True)
+    pdf.cell(w=pdf.get_string_width(education_duration), txt=education_duration, h=7, border=False, align="L", ln=True)
 
     # Second line: Degree Title + Institute
     pdf.cell(12)
     pdf.set_font("PoppinsBold", size=12)
     degree_title = degree_title.upper()
-    pdf.cell(w=pdf.get_string_width(degree_title), txt=degree_title, h=height_cell, border=False, align="L")
+    pdf.cell(w=pdf.get_string_width(degree_title), txt=degree_title, h=7, border=False, align="L")
     
     institute_name = " " + institute_name
     pdf.set_font("PoppinsRegular", size=12)
-    pdf.cell(w=pdf.get_string_width(institute_name), txt=institute_name, h=height_cell, border=False, align="L", ln=True)
+    pdf.cell(w=pdf.get_string_width(institute_name), txt=institute_name, h=7, border=False, align="L", ln=True)
 
     # Line separator
     pdf.set_line_width(0.6)
     pdf.set_draw_color(0, 75, 128)
     line_y = pdf.get_y()
-    pdf.line(left_margin + 7, line_y, pdf.w - right_margin, line_y)
+    pdf.line(6 + 7, line_y, pdf.w - 6, line_y)
 
     # Modules paragraph
     
@@ -122,9 +126,9 @@ def generate_education_section(pdf, start_date, end_date, location, degree_title
         print("The string was empty")
     else:
         pdf.set_font("PoppinsRegular", size=10)
-        pdf.set_xy(left_margin + 6.5, pdf.get_y() + 2)
+        pdf.set_xy(6 + 6.5, pdf.get_y() + 2)
         pdf.multi_cell(
-        w=pdf.w - (left_margin + 7) - right_margin,
+        w=pdf.w - (6 + 7) - 6,
         h=6,
         txt=cleaned_text,
         border=False,
@@ -137,12 +141,12 @@ def generate_education_section(pdf, start_date, end_date, location, degree_title
     
 
     # Final grade line
-    pdf.set_xy(left_margin + 6.5, pdf.get_y() + 1)
+    pdf.set_xy(6 + 6.5, pdf.get_y() + 1)
     pdf.set_font("PoppinsBold", size=12)
     label = "Final Grade: "
     pdf.cell(
         w=pdf.get_string_width(label),
-        h=height_cell,
+        h=7,
         txt=label,
         align="L",
         border=False
@@ -151,7 +155,7 @@ def generate_education_section(pdf, start_date, end_date, location, degree_title
     pdf.set_font("PoppinsRegular", size=12)
     pdf.cell(
         w=pdf.get_string_width(final_grade),
-        h=height_cell,
+        h=7,
         txt=final_grade,
         align="L",
         border=False,
@@ -161,6 +165,7 @@ def generate_education_section(pdf, start_date, end_date, location, degree_title
 
 
 def render_language_skills_table(pdf, lang, listening, reading, spoken_prod, spoken_inter, writing):
+  
     from fpdf import FPDF
     pdf.set_fill_color(240, 245, 255)
     pdf.set_draw_color(0, 75, 128)
@@ -219,357 +224,353 @@ def render_language_skills_table(pdf, lang, listening, reading, spoken_prod, spo
 
     pdf.ln(2)  # spacing after table
 
+def generate_cv_now():
+    pdf = FPDF()
+    pdf.set_margins(0, 0, 0)
+    pdf.add_page()
+    print("Starting working")
+    # Fonts
+    pdf.add_font("PoppinsLarger", "", "Poppins/Poppins-Bold.ttf", uni=True)
+    pdf.add_font("PoppinsRegular", "", "Poppins/Poppins-Regular.ttf", uni=True)
+    pdf.add_font("PoppinsBold", "", "Poppins/Poppins-SemiBold.ttf", uni=True)
+    pdf.add_font("Emoji", "", "Noto_Color_Emoji/Symbola.ttf", uni=True)
 
+    # Background Rect
+    pdf.set_fill_color(0, 75, 128)
+    pdf.rect(x=0, y=0, w=pdf.w, h=40, style='F')
 
+    # Title
+    pdf.set_font("PoppinsLarger", size=18)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(ln=True, w=pdf.w, h=4, border=False)
+    pdf.cell(5)
+    user_name = "Haseeb Sagheer"
+    pdf.cell(w=pdf.get_string_width(user_name), h=13, txt=user_name, border=False, align="L", ln=True)
 
-pdf = FPDF()
-pdf.set_margins(0, 0, 0)
-pdf.add_page()
+    # White line under title
+    left_margin = 6
+    right_margin = 6
+    line_y = pdf.get_y()
+    pdf.set_line_width(0.3)
+    pdf.set_draw_color(255, 255, 255)
+    pdf.line(left_margin, line_y, pdf.w - right_margin, line_y)
 
-# Fonts
-pdf.add_font("PoppinsLarger", "", "Poppins/Poppins-Bold.ttf", uni=True)
-pdf.add_font("PoppinsRegular", "", "Poppins/Poppins-Regular.ttf", uni=True)
-pdf.add_font("PoppinsBold", "", "Poppins/Poppins-SemiBold.ttf", uni=True)
-pdf.add_font("Emoji", "", "Noto_Color_Emoji/Symbola.ttf", uni=True)
+    pdf.cell(w=pdf.w, h=2, ln=True, border=False)
+    pdf.cell(5)
 
-# Background Rect
-pdf.set_fill_color(0, 75, 128)
-pdf.rect(x=0, y=0, w=pdf.w, h=40, style='F')
+    # Info Row 1
+    height_cell = 7
+    pdf.set_font("PoppinsBold", size=10)
+    pdf.cell(w=28, h=height_cell, txt="Place of Birth:", border=False, align="C", ln=False)
+    pdf.set_font("PoppinsRegular", size=10)
+    pdf.cell(w=25, h=height_cell, txt="Bhimber", border=False, ln=False)
 
-# Title
-pdf.set_font("PoppinsLarger", size=18)
-pdf.set_text_color(255, 255, 255)
-pdf.cell(ln=True, w=pdf.w, h=4, border=False)
-pdf.cell(5)
-pdf.cell(w=pdf.w, h=13, txt="Haseeb Sagheer", border=False, align="L", ln=True)
+    pdf.cell(w=8, h=height_cell, txt="-", border=False, ln=False)
+    pdf.set_font("PoppinsBold", size=10)
+    pdf.cell(w=15, h=height_cell, txt="Phone:", border=False, align="C", ln=False)
+    pdf.set_font("PoppinsRegular", size=10)
+    pdf.cell(w=32, h=height_cell, txt="+923082496103", border=False, ln=False)
 
-# White line under title
-left_margin = 6
-right_margin = 6
-line_y = pdf.get_y()
-pdf.set_line_width(0.3)
-pdf.set_draw_color(255, 255, 255)
-pdf.line(left_margin, line_y, pdf.w - right_margin, line_y)
+    pdf.cell(w=6, h=height_cell, txt="-", border=False, ln=False)
+    pdf.set_font("PoppinsBold", size=10)
+    pdf.cell(w=15, h=height_cell, txt="Email:", border=False, align="C", ln=False)
+    pdf.set_font("PoppinsRegular", size=10)
+    pdf.cell(w=75, h=height_cell, txt="engrhaseebsagheer@gmail.com", border=False, ln=True)
 
-pdf.cell(w=pdf.w, h=2, ln=True, border=False)
-pdf.cell(5)
+    # Info Row 2
+    pdf.cell(50)
+    pdf.set_font("PoppinsBold", size=10)
+    pdf.cell(w=20, h=height_cell, txt="Website:", border=False, align="C", ln=False)
+    pdf.set_font("PoppinsRegular", size=10)
+    pdf.cell(w=20, h=height_cell, txt="Click To Visit", border=False, align="C", ln=False,
+             link="https://haseebstudios.com/")
 
-# Info Row 1
-height_cell = 7
-pdf.set_font("PoppinsBold", size=10)
-pdf.cell(w=28, h=height_cell, txt="Place of Birth:", border=False, align="C", ln=False)
-pdf.set_font("PoppinsRegular", size=10)
-pdf.cell(w=25, h=height_cell, txt="Bhimber", border=False, ln=False)
+    pdf.cell(10)
+    pdf.cell(w=15, h=height_cell, txt="-", border=False, ln=False)
+    pdf.set_font("PoppinsBold", size=10)
+    pdf.cell(w=17, h=height_cell, txt="Linkedin:", border=False, align="C", ln=False)
+    pdf.set_font("PoppinsRegular", size=10)
+    pdf.cell(w=32, h=height_cell, txt="View Profile", border=False, ln=True,
+             link="https://www.linkedin.com/in/haseeb-sagheer/")
 
-pdf.cell(w=8, h=height_cell, txt="-", border=False, ln=False)
-pdf.set_font("PoppinsBold", size=10)
-pdf.cell(w=15, h=height_cell, txt="Phone:", border=False, align="C", ln=False)
-pdf.set_font("PoppinsRegular", size=10)
-pdf.cell(w=32, h=height_cell, txt="+923082496103", border=False, ln=False)
+    # About Myself Section
+    pdf.cell(w=5, h=7, ln=True)
+    pdf.cell(5)
 
-pdf.cell(w=6, h=height_cell, txt="-", border=False, ln=False)
-pdf.set_font("PoppinsBold", size=10)
-pdf.cell(w=15, h=height_cell, txt="Email:", border=False, align="C", ln=False)
-pdf.set_font("PoppinsRegular", size=10)
-pdf.cell(w=75, h=height_cell, txt="engrhaseebsagheer@gmail.com", border=False, ln=True)
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("Emoji", size=12)
+    pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False)
 
-# Info Row 2
-pdf.cell(50)
-pdf.set_font("PoppinsBold", size=10)
-pdf.cell(w=20, h=height_cell, txt="Website:", border=False, align="C", ln=False)
-pdf.set_font("PoppinsRegular", size=10)
-pdf.cell(w=20, h=height_cell, txt="Click To Visit", border=False, align="C", ln=False,
-         link="https://haseebstudios.com/")
+    pdf.set_font("PoppinsLarger", size=12)
+    pdf.cell(w=pdf.w, h=height_cell * 2, txt="ABOUT MYSELF", ln=True, align="L")
 
-pdf.cell(10)
-pdf.cell(w=15, h=height_cell, txt="-", border=False, ln=False)
-pdf.set_font("PoppinsBold", size=10)
-pdf.cell(w=17, h=height_cell, txt="Linkedin:", border=False, align="C", ln=False)
-pdf.set_font("PoppinsRegular", size=10)
-pdf.cell(w=32, h=height_cell, txt="View Profile", border=False, ln=True,
-         link="https://www.linkedin.com/in/haseeb-sagheer/")
+    # Draw Line ABOVE the paragraph
+    pdf.set_line_width(0.8)
+    pdf.set_draw_color(0, 75, 128)
+    line_y2 = pdf.get_y() - 3 # Current Y BEFORE paragraph
+    pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
 
-# About Myself Section
-pdf.cell(w=5, h=7, ln=True)
-pdf.cell(5)
+    # Multi-line text
+    pdf.set_font("PoppinsRegular", size=10)
+    pdf.set_xy(left_margin + 6.5, pdf.get_y()-1)  # Add spacing below the line 
 
-pdf.set_text_color(0, 0, 0)
-pdf.set_font("Emoji", size=12)
-pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False)
-
-pdf.set_font("PoppinsLarger", size=12)
-pdf.cell(w=pdf.w, h=height_cell * 2, txt="ABOUT MYSELF", ln=True, align="L")
-
-# Draw Line ABOVE the paragraph
-pdf.set_line_width(0.8)
-pdf.set_draw_color(0, 75, 128)
-line_y2 = pdf.get_y() - 3 # Current Y BEFORE paragraph
-pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
-
-# Multi-line text
-pdf.set_font("PoppinsRegular", size=10)
-pdf.set_xy(left_margin + 6.5, pdf.get_y()-1)  # Add spacing below the line 
-
-pdf.multi_cell(
-    w=pdf.w - (left_margin + 7) - right_margin,
-    h=6,
-    txt="""Software engineer with expertise in game development, AI, and software systems. Experienced in Unity, C#, and multiplayer networking.""",
-    border=False,
-    align="L"
-)
- # Section heading
-pdf.cell(w=5, h=-1, ln=True)
-pdf.cell(5)
-pdf.set_text_color(0, 0, 0)
-pdf.set_font("Emoji", size=12)
-pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False, border=False)
-pdf.set_font("PoppinsLarger", size=12)
-pdf.cell(w=pdf.w, h=height_cell * 2, txt="WORK EXPERIENCE", ln=True, align="L", border=False)
-pdf.set_text_color(0, 0, 50)
-
-    # Section divider line
-line_y2 = pdf.get_y() - 3
-pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
-pdf.set_font("PoppinsRegular", size=10)
-pdf.set_xy(pdf.x, pdf.get_y() - 1)
-
-generate_experience_section(
-    pdf,
-    occupation="Fiverr",
-    place="ISLAMABAD, Pakistan",
-    position="Freelancer",
-    start_date="07/25/2025",
-    end_date="Current",
-    description_text=""" A skilled and versatile freelancer offering professional game development and data science services. Experienced in
-developing 2D and 3D games using Unity and C#, with a strong focus on gameplay mechanics, multiplayer features
-(Photon), and backend integration using Firebase and other tools. Also proficient in Python for data analysis, machine
-learning model development, and automation tasks. Delivers high-quality, scalable solutions tailored to client needs
-across both gaming and data-driven projects.
-- Collaborated with clients to gather requirements and deliver tailored software solutions.
-- Designed and built systems in C++, C#, and Python with a focus on DS, algorithms, and optimization.
-- Created a NADRA system prototype in C++ featuring secure data handling and fast search logic."""
-)
-generate_experience_section(
-    pdf,
-    occupation="AL-KHIDMAT FOUNDATION",
-    place="ISLAMABAD, Pakistan",
-    position="VOLUNTEER",
-    start_date="07/25/2025",
-    end_date="09/25/2025",
-    description_text=""" Volunteered to support Alkhidmat Foundation’s initiative for orphan care by collecting and organizing data to help
-connect children with essential support services.
-- Identified and documented information of orphan children in underserved communities.
-- Ensured accurate and complete data collection to assist in distributing aid and educational resources.
-- Coordinated with local families and community leaders to verify background details.
-- Submitted organized reports to the foundation to help facilitate targeted support and follow-up actions.
-- Contributed to a meaningful social cause by helping improve the lives of vulnerable children.
-"""
-)
-
-
-
-# About Education and training section
-pdf.cell(w=5, h=4, ln=True)
-pdf.cell(5)
-
-pdf.set_text_color(0, 0, 0)
-pdf.set_font("Emoji", size=12)
-pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False)
-
-pdf.set_font("PoppinsLarger", size=12)
-pdf.cell(w=pdf.w, h=height_cell * 2, txt="EDUCATION AND TRAINING", ln=True, align="L")
-
-# Draw Line ABOVE the paragraph
-pdf.set_line_width(0.8)
-pdf.set_draw_color(0, 75, 128)
-line_y2 = pdf.get_y() - 2 # Current Y BEFORE paragraph
-pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
-generate_education_section(
-    pdf,
-    start_date="12/12/2025",
-    end_date="12/12/2027",
-    location="Islamabad, Pakistan",
-    degree_title="BS Software Engineering",
-    institute_name="Capital University of Science and Technology",
-    modules_text="""The major modules I studied during this degree are:
-1) Data Structures
-2) Web Engineering
-3) Artificial Intelligence
-4) Software Engineering
-5) Parallel and Distributed Computing
-6) Information Security and Network Security""",
-    final_grade="3.22/4.0"
-)
-generate_education_section(
-    pdf,
-    start_date="12/12/2022",
-    end_date="12/12/2024",
-    location="Barnala, Azad Jammu & Kashmir",
-    degree_title="Intermediate",
-    institute_name="Dawn Science College Barnala",
-    modules_text="""""",
-    final_grade="794/1100"
-)
-generate_education_section(
-    pdf,
-    start_date="12/12/2021",
-    end_date="12/12/2022",
-    location="Sardari, Azad Jammu & Kashmir",
-    degree_title="Chanar Public Model School",
-    institute_name="Capital University of Science and Technology",
-    modules_text="""""",
-    final_grade="648/1100"
-)
-pdf.cell(w=5, h=-1, ln=True)
-pdf.cell(5)
-
-pdf.set_text_color(0, 0, 0)
-pdf.set_font("Emoji", size=12)
-pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False)
-
-pdf.set_font("PoppinsLarger", size=12)
-pdf.cell(w=pdf.w, h=height_cell * 2, txt="LANGUAGE SKILLS", ln=True, align="L")
-
-# Draw Line ABOVE the paragraph
-pdf.set_line_width(0.8)
-pdf.set_draw_color(0, 75, 128)
-line_y2 = pdf.get_y() - 3 # Current Y BEFORE paragraph
-pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
-pdf.set_font("PoppinsRegular",size=13)
-pdf.cell(w=12,h=3)
-pdf.cell(txt="Mother Tongue(s): ",w=pdf.get_string_width("Mother Tongue(s): "),h=height_cell)
-language = "Urdu"
-language= language.upper()
-pdf.set_font("PoppinsBold",size=12)
-pdf.cell(txt=language,w=pdf.get_string_width(language),h=height_cell,ln=True)
-pdf.cell(w=12,h=6)
-pdf.set_font("PoppinsRegular",size=12)
-pdf.cell(txt="Other Language(s):",w=pdf.get_string_width("Other Language(s):"),h=height_cell)
-pdf.set_xy(pdf.x,pdf.y+8)
-render_language_skills_table(
-    pdf,
-    lang="English",
-    listening="C1",
-    reading="C1",
-    spoken_prod="B2",
-    spoken_inter="B2",
-    writing="B2"
-)
-
-pdf.cell(w=5, h=2, ln=True)
-pdf.cell(5)
-pdf.set_text_color(0, 0, 0)
-pdf.set_font("Emoji", size=12)
-pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False)
-
-pdf.set_font("PoppinsLarger", size=12)
-pdf.cell(w=pdf.w, h=height_cell * 2, txt="COMMUNICATION AND INTERPERSONAL SKILLS", ln=True, align="L")
-
-# Draw Line ABOVE the paragraph
-pdf.set_line_width(0.8)
-pdf.set_draw_color(0, 75, 128)
-line_y2 = pdf.get_y() - 2 # Current Y BEFORE paragraph
-pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
-
-
-
-
-pdf.set_font("PoppinsBold", size=12)
-pdf.set_text_color(0,0,50)
-pdf.cell(12)
-pdf.cell(w=pdf.w, h=height_cell * 2, txt="Soft Skills", ln=True, align="L")
-
-# Draw Line ABOVE the paragraph
-pdf.set_line_width(0.5)
-pdf.set_draw_color(0, 75, 128)
-line_y2 = pdf.get_y() - 3 # Current Y BEFORE paragraph
-pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
-pdf.set_font("PoppinsRegular", size=12)
-skills = "Adaptability, Problem-Solving, Attention to Detail, Time Management, Effective Communication"
-final_skills= skills.split(',')
-
-final_skills = list(map(str.strip,final_skills))
-pdf.set_xy(pdf.x,pdf.y+2)
-for item in final_skills:
-    pdf.cell(16)
-    pdf.cell(w=pdf.get_string_width("• "+item),h=height_cell,txt="• "+item,ln=True)
-
-
-
-pdf.cell(w=5, h=2, ln=True)
-pdf.cell(5)
-pdf.set_text_color(0, 0, 0)
-pdf.set_font("Emoji", size=12)
-pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False)
-
-pdf.set_font("PoppinsLarger", size=12)
-pdf.cell(w=pdf.w, h=height_cell * 2, txt="PROGRAMMING SKILLS", ln=True, align="L")
-
-# Draw Line ABOVE the paragraph
-pdf.set_line_width(0.8)
-pdf.set_draw_color(0, 75, 128)
-line_y2 = pdf.get_y() - 2 # Current Y BEFORE paragraph
-pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
-
-
-
-
-pdf.set_font("PoppinsBold", size=12)
-pdf.set_text_color(0,0,50)
-pdf.cell(12)
-pdf.cell(w=pdf.w, h=height_cell * 2, txt="Languages", ln=True, align="L")
-
-# Draw Line ABOVE the paragraph
-pdf.set_line_width(0.5)
-pdf.set_draw_color(0, 75, 128)
-line_y2 = pdf.get_y() - 3 # Current Y BEFORE paragraph
-pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
-pdf.set_font("PoppinsRegular", size=12)
-language_skills = "C#, C++, PHP, Java, Python"
-language_final_skills= language_skills.split(',')
-
-language_final_skills = list(map(str.strip,language_final_skills))
-pdf.set_xy(pdf.x,pdf.y+2)
-print(pdf.y)
-for item in language_final_skills:
-    pdf.set_x(20)  # consistent horizontal indent instead of pdf.cell(16)
-    pdf.cell(w=pdf.get_string_width("• " + item) + 1, h=height_cell, txt="• " + item, ln=True, border=False)
-
-print(pdf.y)
-pdf.set_y(pdf.get_y() + 2)  # Adjust this value if needed
-
-# Projects Heading
-pdf.set_font("PoppinsBold", size=12)
-pdf.set_text_color(0, 0, 50)
-pdf.cell(12)
-pdf.cell(w=pdf.w, h=height_cell, txt="Projects", ln=True, align="L", border=False)
-
-# Blue line under heading
-pdf.set_line_width(0.5)
-pdf.set_draw_color(0, 75, 128)
-line_y2 = pdf.get_y() + 0.5
-pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
-
-# Align Y just below line
-
-pdf.set_y(pdf.get_y() + 2)
-# Function with correct X alignment
-pdf.set_font("PoppinsRegular",size=12)
-def add_project(pdf, data):
-    pdf.set_x(left_margin + 6.5)  # Fix alignment
     pdf.multi_cell(
         w=pdf.w - (left_margin + 7) - right_margin,
         h=6,
-        txt=data,
+        txt="""Software engineer with expertise in game development, AI, and software systems.""",
         border=False,
         align="L"
     )
 
-# Example description
-description = """Species Detection Model for Margalla Hills: Developed a CNN-based model to classify species using a custom dataset, achieving 80% accuracy."""
-refined_description = fix_multiline_paragraph(description)
+    # Section heading
+    pdf.cell(w=5, h=-1, ln=True)
+    pdf.cell(5)
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("Emoji", size=12)
+    pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False, border=False)
+    pdf.set_font("PoppinsLarger", size=12)
+    pdf.cell(w=pdf.w, h=height_cell * 2, txt="WORK EXPERIENCE", ln=True, align="L", border=False)
+    pdf.set_text_color(0, 0, 50)
 
-add_project(pdf, refined_description)
+    # Section divider line
+    line_y2 = pdf.get_y() - 3
+    pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
+    pdf.set_font("PoppinsRegular", size=10)
+    pdf.set_xy(pdf.x, pdf.get_y() - 1)
 
+    generate_experience_section(
+        pdf,
+        occupation="Fiverr",
+        place="ISLAMABAD, Pakistan",
+        position="Freelancer",
+        start_date="07/25/2025",
+        end_date="Current",
+        description_text=""" A skilled and versatile freelancer offering professional game development and data science services. Experienced in
+    developing 2D and 3D games using Unity and C#, with a strong focus on gameplay mechanics, multiplayer features
+    (Photon), and backend integration using Firebase and other tools. Also proficient in Python for data analysis, machine
+    learning model development, and automation tasks. Delivers high-quality, scalable solutions tailored to client needs
+    across both gaming and data-driven projects.
+    - Collaborated with clients to gather requirements and deliver tailored software solutions.
+    - Designed and built systems in C++, C#, and Python with a focus on DS, algorithms, and optimization.
+    - Created a NADRA system prototype in C++ featuring secure data handling and fast search logic."""
+    )
+    generate_experience_section(
+        pdf,
+        occupation="AL-KHIDMAT FOUNDATION",
+        place="ISLAMABAD, Pakistan",
+        position="VOLUNTEER",
+        start_date="07/25/2025",
+        end_date="09/25/2025",
+        description_text=""" Volunteered to support Alkhidmat Foundation's initiative for orphan care by collecting and organizing data to help
+    connect children with essential support services.
+    - Identified and documented information of orphan children in underserved communities.
+    - Ensured accurate and complete data collection to assist in distributing aid and educational resources.
+    - Coordinated with local families and community leaders to verify background details.
+    - Submitted organized reports to the foundation to help facilitate targeted support and follow-up actions.
+    - Contributed to a meaningful social cause by helping improve the lives of vulnerable children.
+    """
+    )
 
-pdf.output("fixed_full_width.pdf")
+    # About Education and training section
+    pdf.cell(w=5, h=4, ln=True)
+    pdf.cell(5)
+
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("Emoji", size=12)
+    pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False)
+
+    pdf.set_font("PoppinsLarger", size=12)
+    pdf.cell(w=pdf.w, h=height_cell * 2, txt="EDUCATION AND TRAINING", ln=True, align="L")
+
+    # Draw Line ABOVE the paragraph
+    pdf.set_line_width(0.8)
+    pdf.set_draw_color(0, 75, 128)
+    line_y2 = pdf.get_y() - 2 # Current Y BEFORE paragraph
+    pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
+    generate_education_section(
+        pdf,
+        start_date="12/12/2025",
+        end_date="12/12/2027",
+        location="Islamabad, Pakistan",
+        degree_title="BS Software Engineering",
+        institute_name="Capital University of Science and Technology",
+        modules_text="""The major modules I studied during this degree are:
+    1) Data Structures
+    2) Web Engineering
+    3) Artificial Intelligence
+    4) Software Engineering
+    5) Parallel and Distributed Computing
+    6) Information Security and Network Security""",
+        final_grade="3.22/4.0"
+    )
+    generate_education_section(
+        pdf,
+        start_date="12/12/2022",
+        end_date="12/12/2024",
+        location="Barnala, Azad Jammu & Kashmir",
+        degree_title="Intermediate",
+        institute_name="Dawn Science College Barnala",
+        modules_text="""""",
+        final_grade="794/1100"
+    )
+    generate_education_section(
+        pdf,
+        start_date="12/12/2021",
+        end_date="12/12/2022",
+        location="Sardari, Azad Jammu & Kashmir",
+        degree_title="Chanar Public Model School",
+        institute_name="Capital University of Science and Technology",
+        modules_text="""""",
+        final_grade="648/1100"
+    )
+    pdf.cell(w=5, h=-1, ln=True)
+    pdf.cell(5)
+
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("Emoji", size=12)
+    pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False)
+
+    pdf.set_font("PoppinsLarger", size=12)
+    pdf.cell(w=pdf.w, h=height_cell * 2, txt="LANGUAGE SKILLS", ln=True, align="L")
+
+    # Draw Line ABOVE the paragraph
+    pdf.set_line_width(0.8)
+    pdf.set_draw_color(0, 75, 128)
+    line_y2 = pdf.get_y() - 3 # Current Y BEFORE paragraph
+    pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
+    pdf.set_font("PoppinsRegular",size=13)
+    pdf.cell(w=12,h=3)
+    pdf.cell(txt="Mother Tongue(s): ",w=pdf.get_string_width("Mother Tongue(s): "),h=height_cell)
+    language = "Urdu"
+    language= language.upper()
+    pdf.set_font("PoppinsBold",size=12)
+    pdf.cell(txt=language,w=pdf.get_string_width(language),h=height_cell,ln=True)
+    pdf.cell(w=12,h=6)
+    pdf.set_font("PoppinsRegular",size=12)
+    pdf.cell(txt="Other Language(s):",w=pdf.get_string_width("Other Language(s):"),h=height_cell)
+    pdf.set_xy(pdf.x,pdf.y+8)
+    render_language_skills_table(
+        pdf,
+        lang="English",
+        listening="C1",
+        reading="C1",
+        spoken_prod="B2",
+        spoken_inter="B2",
+        writing="B2"
+    )
+
+    pdf.cell(w=5, h=2, ln=True)
+    pdf.cell(5)
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("Emoji", size=12)
+    pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False)
+
+    pdf.set_font("PoppinsLarger", size=12)
+    pdf.cell(w=pdf.w, h=height_cell * 2, txt="COMMUNICATION AND INTERPERSONAL SKILLS", ln=True, align="L")
+
+    # Draw Line ABOVE the paragraph
+    pdf.set_line_width(0.8)
+    pdf.set_draw_color(0, 75, 128)
+    line_y2 = pdf.get_y() - 2 # Current Y BEFORE paragraph
+    pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
+
+    pdf.set_font("PoppinsBold", size=12)
+    pdf.set_text_color(0,0,50)
+    pdf.cell(12)
+    pdf.cell(w=pdf.w, h=height_cell * 2, txt="Soft Skills", ln=True, align="L")
+
+    # Draw Line ABOVE the paragraph
+    pdf.set_line_width(0.5)
+    pdf.set_draw_color(0, 75, 128)
+    line_y2 = pdf.get_y() - 3 # Current Y BEFORE paragraph
+    pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
+    pdf.set_font("PoppinsRegular", size=12)
+    skills = "Adaptability, Problem-Solving, Attention to Detail, Time Management, Effective Communication"
+    final_skills= skills.split(',')
+
+    final_skills = list(map(str.strip,final_skills))
+    pdf.set_xy(pdf.x,pdf.y+2)
+    for item in final_skills:
+        pdf.cell(16)
+        pdf.cell(w=pdf.get_string_width("• "+item),h=height_cell,txt="• "+item,ln=True)
+
+    pdf.cell(w=5, h=2, ln=True)
+    pdf.cell(5)
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("Emoji", size=12)
+    pdf.cell(w=6.5, h=height_cell * 2, txt="◉", ln=False)
+
+    pdf.set_font("PoppinsLarger", size=12)
+    pdf.cell(w=pdf.w, h=height_cell * 2, txt="PROGRAMMING SKILLS", ln=True, align="L")
+
+    # Draw Line ABOVE the paragraph
+    pdf.set_line_width(0.8)
+    pdf.set_draw_color(0, 75, 128)
+    line_y2 = pdf.get_y() - 2 # Current Y BEFORE paragraph
+    pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
+
+    pdf.set_font("PoppinsBold", size=12)
+    pdf.set_text_color(0,0,50)
+    pdf.cell(12)
+    pdf.cell(w=pdf.w, h=height_cell * 2, txt="Languages", ln=True, align="L")
+
+    # Draw Line ABOVE the paragraph
+    pdf.set_line_width(0.5)
+    pdf.set_draw_color(0, 75, 128)
+    line_y2 = pdf.get_y() - 3 # Current Y BEFORE paragraph
+    pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
+    pdf.set_font("PoppinsRegular", size=12)
+    language_skills = "C#, C++, PHP, Java, Python"
+    language_final_skills= language_skills.split(',')
+
+    language_final_skills = list(map(str.strip,language_final_skills))
+    pdf.set_xy(pdf.x,pdf.y+2)
+    for item in language_final_skills:
+        pdf.set_x(20)
+        pdf.cell(w=pdf.get_string_width("• " + item) + 1, h=height_cell, txt="• " + item, ln=True, border=False)
+
+    pdf.set_y(pdf.get_y() + 2)
+
+    # Projects Heading
+    pdf.set_font("PoppinsBold", size=12)
+    pdf.set_text_color(0, 0, 50)
+    pdf.cell(12)
+    pdf.cell(w=pdf.w, h=height_cell, txt="Projects", ln=True, align="L", border=False)
+
+    # Blue line under heading
+    pdf.set_line_width(0.5)
+    pdf.set_draw_color(0, 75, 128)
+    line_y2 = pdf.get_y() + 0.5
+    pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
+
+    pdf.set_y(pdf.get_y() + 2)
+    pdf.set_font("PoppinsRegular",size=12)
+    
+    def add_project(pdf, data):
+        pdf.set_x(left_margin + 6.5)
+        pdf.multi_cell(
+            w=pdf.w - (left_margin + 7) - right_margin,
+            h=6,
+            txt=data,
+            border=False,
+            align="L"
+        )
+
+    description = """Species Detection Model for Margalla Hills: Developed a CNN-based model to classify species using a custom dataset, achieving 80% accuracy."""
+    refined_description = fix_multiline_paragraph(description)
+    add_project(pdf, refined_description)
+
+    def add_link(pdf,link2):
+        pdf.cell(12,4)
+        pdf.set_font("PoppinsBold", size=12)
+        pdf.cell(w=pdf.get_string_width("Link: "),h=height_cell,txt="Link: ")
+        pdf.set_font("PoppinsRegular", size=12)
+        pdf.cell(w=pdf.get_string_width(link2), h = height_cell, txt = link2,link=link2,ln=True)
+
+    add_link(pdf,"https://haseebstudios.com/")
+    add_link(pdf,"https://haseebstudios.com/")
+    add_link(pdf,"https://haseebstudios.com/")
+    
+    pdf.output("fixed_full_width.pdf")
+
+# Call the function to generate the CV
