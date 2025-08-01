@@ -2,7 +2,7 @@
 
 **Generate beautiful, downloadable CVs directly from your browser — powered by Python, Flask, and FPDF.**
 🔗 [Live Demo](https://haseebsagheer.com/cv-generator)
-📄 [Sample CV](https://haseebsagheer.com/cv-generator/CV_Haseeb_Sagheer_20250801_175742_a21579.pdf)
+📄 [Sample CV](https://haseebsagheer.com/cv-generator/CV_Haseeb_Sagheer_20250801_202643_7678bc.pdf)
 
 ---
 
