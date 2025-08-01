@@ -1,10 +1,10 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect
 from fpdf import FPDF
 import re
+from datetime import datetime
+import uuid
 
 
-#!/usr/bin/env python3
-print("Content-Type: text/html\n\n")  # CGI header (must be first!)
 def fix_multiline_paragraph(text):
     lines = text.strip().splitlines()
     cleaned = []
@@ -548,9 +548,13 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     for link in links:
         add_link(pdf,link)
 
-    
-    pdf.output("fixed_full_width.pdf")
-
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # Format: YYYYMMDD_HHMMSS
+    unique_id = uuid.uuid4().hex[:6]  # First 6 characters of UUID
+    safe_name = u_name.replace(" ", "_")  # Replace spaces with underscores
+    cv_name = f"CV_{safe_name}_{timestamp}_{unique_id}.pdf"
+   
+    pdf.output(cv_name)
+    return cv_name
 
 
 app = Flask(__name__)
@@ -606,15 +610,17 @@ def generate():
     
     # Additional Links (multiple entries)
     additional_links = request.form.getlist('additional_links[]')
-    generate_cv_now(name,birthplace,phone,email,website,linkedin,about,exp_companies,exp_locations,exp_positions,exp_starts,exp_ends,exp_currents,exp_descriptions,
+    cv_name =    generate_cv_now(name,birthplace,phone,email,website,linkedin,about,exp_companies,exp_locations,exp_positions,exp_starts,exp_ends,exp_currents,exp_descriptions,
                                                     edu_starts,edu_ends,edu_programs,edu_institutes,edu_locations,edu_descriptions,edu_grades,
                                                             mother_tongue,lang_names,lang_listenings,lang_readings,lang_spokens,lang_interactions,soft_skills,programming_skills,project_descriptions,additional_links
                                                               
                                  
                              )
    
-    return f"PDF generated successfully for {name}"
+    return redirect(f"https://haseebsagheer.com/cv-generator/{cv_name}")
+
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=80)
+    app.run(debug =True,host='0.0.0.0',port=50001)
+    
     
