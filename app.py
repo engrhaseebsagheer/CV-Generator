@@ -718,6 +718,15 @@ def generate_cv_now(u_name, u_b_place, u_phone, u_email, u_website, u_linkedin, 
 
 
 app = Flask(__name__)
+
+from flask_cors import CORS
+origins = [
+    "https://haseebsagheer.com",
+    "https://www.haseebsagheer.com",
+]
+
+CORS(app, origins=origins, supports_credentials=True)
+
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # Limit uploads to 2MB
 limiter = Limiter(get_remote_address, app=app, default_limits=["20 per minute"])  # Global limit
 # Custom handler for 429 errors
