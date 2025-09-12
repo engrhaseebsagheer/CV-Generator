@@ -1,9 +1,60 @@
-from flask import Flask, request, render_template, redirect
-from fpdf import FPDF
-import re
-from datetime import datetime
-import uuid
+# --- ADDED CODE START ---
+import logging
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+import time
+# --- ADDED CODE END ---
 
+from flask import Flask, request, jsonify, send_from_directory
+from fpdf import FPDF
+import re, os, uuid
+from datetime import datetime
+from werkzeug.utils import secure_filename
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+# --- ADDED CODE START ---
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Global font storage
+FONTS_LOADED = False
+
+# PDF storage configuration
+PDF_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "generated_pdfs")
+os.makedirs(PDF_FOLDER, exist_ok=True)
+
+# Initialize scheduler
+scheduler = BackgroundScheduler()
+scheduler.start()
+
+# Cleanup job for old PDFs
+def cleanup_old_pdfs():
+    """Delete PDF files older than 1 hour"""
+    try:
+        now = time.time()
+        for filename in os.listdir(PDF_FOLDER):
+            file_path = os.path.join(PDF_FOLDER, filename)
+            if os.path.isfile(file_path) and filename.endswith('.pdf'):
+                # Delete files older than 1 hour
+                if now - os.path.getmtime(file_path) > 3600:
+                    os.remove(file_path)
+                    logger.info(f"Deleted old PDF: {filename}")
+    except Exception as e:
+        logger.error(f"Error in cleanup_old_pdfs: {str(e)}")
+
+# Schedule cleanup to run every hour
+scheduler.add_job(
+    func=cleanup_old_pdfs,
+    trigger=IntervalTrigger(hours=1),
+    id='pdf_cleanup_job',
+    name='Cleanup old PDF files every hour',
+    replace_existing=True
+)
+
+
+# --- ADDED CODE END ---
 
 def fix_multiline_paragraph(text):
     lines = text.strip().splitlines()
@@ -225,17 +276,19 @@ def render_language_skills_table(pdf, lang, listening, reading, spoken_prod, spo
 
     pdf.ln(2)  # spacing after table
 
-def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_about, u_company,u_c_place,u_position,u_start_date,u_end_date,u_status_date,u_c_description,u_education_start_date,u_education_end_date,u_education_program,u_education_inititue,u_insititue_place,u_education_description,u_education_grade,u_mother_tongue,u_other_langauges,u_listeing,u_reading,u_spoken,u_spoken_inter,u_soft_skills,u_programming_skills,u_projects,u_links):
-    pdf = FPDF()
-    pdf.set_margins(0, 0, 0)
-    pdf.add_page()
-   
-    # Fonts
-    pdf.add_font("PoppinsLarger", "", "Poppins/Poppins-Bold.ttf", uni=True)
-    pdf.add_font("PoppinsRegular", "", "Poppins/Poppins-Regular.ttf", uni=True)
-    pdf.add_font("PoppinsBold", "", "Poppins/Poppins-SemiBold.ttf", uni=True)
-    pdf.add_font("Emoji", "", "Noto_Color_Emoji/Symbola.ttf", uni=True)
+# --- ADDED CODE START ---
+def setup_pdf_fonts(pdf):
+    """Load fonts once globally"""
+    global FONTS_LOADED
+    if not FONTS_LOADED:
+        pdf.add_font("PoppinsLarger", "", "Poppins/Poppins-Bold.ttf", uni=True)
+        pdf.add_font("PoppinsRegular", "", "Poppins/Poppins-Regular.ttf", uni=True)
+        pdf.add_font("PoppinsBold", "", "Poppins/Poppins-SemiBold.ttf", uni=True)
+        pdf.add_font("Emoji", "", "Noto_Color_Emoji/Symbola.ttf", uni=True)
+        FONTS_LOADED = True
 
+def create_personal_info_section(pdf, u_name, u_b_place, u_phone, u_email, u_website, u_linkedin, u_about):
+    """Extract personal info section from generate_cv_now"""
     # Background Rect
     pdf.set_fill_color(0, 75, 128)
     pdf.rect(x=0, y=0, w=pdf.w, h=40, style='F')
@@ -285,13 +338,10 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     pdf.set_font("PoppinsRegular", size=10)
     if not u_website:
         pdf.cell(w=20, h=height_cell, txt="None", border=False, align="C", ln=False,
-             link="https://haseebsagheer.com/")
+             link="https://pakdecorstudio.com/")
     else:
         pdf.cell(w=20, h=height_cell, txt="None", border=False, align="C", ln=False,
              link=u_website)
-
-
-    
 
     pdf.cell(10)
     pdf.cell(w=15, h=height_cell, txt="-", border=False, ln=False)
@@ -329,7 +379,12 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
         border=False,
         align="L"
     )
+    
+    return left_margin, right_margin, height_cell
 
+def create_work_experience_section(pdf, left_margin, right_margin, height_cell, 
+                                  u_company, u_c_place, u_position, u_start_date, u_end_date, u_status_date, u_c_description):
+    """Extract work experience section from generate_cv_now"""
     # Section heading
     pdf.cell(w=5, h=-1, ln=True)
     pdf.cell(5)
@@ -346,8 +401,17 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     pdf.set_font("PoppinsRegular", size=10)
     pdf.set_xy(pdf.x, pdf.get_y() - 1)
 
+    # Safe defaults for empty lists
+    u_company = u_company or [""]
+    u_c_place = u_c_place or [""]
+    u_position = u_position or [""]
+    u_start_date = u_start_date or [""]
+    u_end_date = u_end_date or [""]
+    u_status_date = u_status_date or [""]
+    u_c_description = u_c_description or [""]
     
-    for (e_company,e_place,e_position,e_start_date,e_end_date,e_status,e_description) in zip(u_company,u_c_place,u_position,u_start_date,u_end_date,u_status_date,u_c_description):
+    for (e_company,e_place,e_position,e_start_date,e_end_date,e_status,e_description) in zip(
+        u_company, u_c_place, u_position, u_start_date, u_end_date, u_status_date, u_c_description):
         end_date_new = "nothing"
         if not e_end_date or not e_end_date.strip():
             end_date_new = "Present"
@@ -355,10 +419,11 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
             end_date_new = e_end_date
 
         generate_experience_section(pdf,e_company,e_place,e_position,e_start_date,end_date_new,e_description)
-        
 
-   
-
+def create_education_section(pdf, left_margin, right_margin, height_cell,
+                           u_education_start_date, u_education_end_date, u_education_program, u_education_inititue,
+                           u_insititue_place, u_education_description, u_education_grade):
+    """Extract education section from generate_cv_now"""
     # About Education and training section
     pdf.cell(w=5, h=4, ln=True)
     pdf.cell(5)
@@ -375,10 +440,24 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     pdf.set_draw_color(0, 75, 128)
     line_y2 = pdf.get_y() - 2 # Current Y BEFORE paragraph
     pdf.line(left_margin + 7, line_y2, pdf.w - right_margin, line_y2)
-   #def generate_education_section(pdf, start_date, end_date, location, degree_title, institute_name, modules_text, final_grade):
+    
+    # Safe defaults for empty lists
+    u_education_start_date = u_education_start_date or [""]
+    u_education_end_date = u_education_end_date or [""]
+    u_insititue_place = u_insititue_place or [""]
+    u_education_program = u_education_program or [""]
+    u_education_inititue = u_education_inititue or [""]
+    u_education_description = u_education_description or [""]
+    u_education_grade = u_education_grade or [""]
 
-    for (ed_start_date,ed_end_date,ed_i_location,ed_degree_title,ed_insitute_name,ed_module_text,ed_final_grade) in zip(u_education_start_date,u_education_end_date,u_insititue_place,u_education_program,u_education_inititue,u_education_description,u_education_grade):
+    for (ed_start_date,ed_end_date,ed_i_location,ed_degree_title,ed_insitute_name,ed_module_text,ed_final_grade) in zip(
+        u_education_start_date, u_education_end_date, u_insititue_place, u_education_program, 
+        u_education_inititue, u_education_description, u_education_grade):
         generate_education_section(pdf,ed_start_date,ed_end_date,ed_i_location,ed_degree_title,ed_insitute_name,ed_module_text,ed_final_grade)
+
+def create_language_skills_section(pdf, left_margin, right_margin, height_cell,
+                                 u_mother_tongue, u_other_langauges, u_listeing, u_reading, u_spoken, u_spoken_inter):
+    """Extract language skills section from generate_cv_now"""
     pdf.cell(w=5, h=-1, ln=True)
     pdf.cell(5)
 
@@ -405,7 +484,15 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
     pdf.set_font("PoppinsRegular",size=12)
     pdf.cell(txt="Other Language(s):",w=pdf.get_string_width("Other Language(s):"),h=height_cell)
     pdf.set_xy(pdf.x,pdf.y+8)
-    for (n_lang,n_list,n_reading,n_spoken,n_inter) in zip(u_other_langauges,u_listeing,u_reading,u_spoken,u_spoken_inter):
+    
+    # Safe defaults for empty lists
+    u_other_langauges = u_other_langauges or [""]
+    u_listeing = u_listeing or [""]
+    u_reading = u_reading or [""]
+    u_spoken = u_spoken or [""]
+    u_spoken_inter = u_spoken_inter or [""]
+    
+    for (n_lang,n_list,n_reading,n_spoken,n_inter) in zip(u_other_langauges, u_listeing, u_reading, u_spoken, u_spoken_inter):
 
         count = 0
         if n_lang == "C1":
@@ -417,10 +504,6 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
         if n_inter == "C1":
             count += 1
 
-  
-     
-
-    
         writing_test = "B1"
         if(count == 1):
          writing_test = "B1"
@@ -434,8 +517,10 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
          writing_test = "A2"
         
         render_language_skills_table(pdf,n_lang,n_list,n_reading,n_spoken,n_inter,writing_test)
-    
 
+def create_skills_sections(pdf, left_margin, right_margin, height_cell, u_soft_skills, u_programming_skills):
+    """Extract skills sections from generate_cv_now"""
+    # Communication and interpersonal skills
     pdf.cell(w=5, h=2, ln=True)
     pdf.cell(5)
     pdf.set_text_color(0, 0, 0)
@@ -471,6 +556,7 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
         pdf.cell(16)
         pdf.cell(w=pdf.get_string_width("• "+item),h=height_cell,txt="• "+item,ln=True)
 
+    # Programming skills
     pdf.cell(w=5, h=2, ln=True)
     pdf.cell(5)
     pdf.set_text_color(0, 0, 0)
@@ -506,6 +592,8 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
         pdf.set_x(20)
         pdf.cell(w=pdf.get_string_width("• " + item) + 1, h=height_cell, txt="• " + item, ln=True, border=False)
 
+def create_projects_section(pdf, left_margin, right_margin, height_cell, u_projects, u_links):
+    """Extract projects section from generate_cv_now"""
     pdf.set_y(pdf.get_y() + 2)
 
     # Projects Heading
@@ -533,94 +621,204 @@ def generate_cv_now(u_name,u_b_place,u_phone,u_email,u_website,u_linkedin,u_abou
             align="L"
         )
 
-
+    # Safe defaults for empty lists
+    u_projects = u_projects or [""]
+    
     for project in u_projects:
         add_project(pdf,fix_multiline_paragraph(project))
    
-
     def add_link(pdf,link2):
         pdf.cell(12,4)
         pdf.set_font("PoppinsBold", size=12)
         pdf.cell(w=pdf.get_string_width("Link: "),h=height_cell,txt="Link: ")
         pdf.set_font("PoppinsRegular", size=12)
         pdf.cell(w=pdf.get_string_width(link2), h = height_cell, txt = link2,link=link2,ln=True)
+    
+    # Safe defaults for empty lists
+    u_links = u_links or [""]
+    
     links = u_links
     for link in links:
         add_link(pdf,link)
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # Format: YYYYMMDD_HHMMSS
-    unique_id = uuid.uuid4().hex[:6]  # First 6 characters of UUID
-    safe_name = u_name.replace(" ", "_")  # Replace spaces with underscores
+def check_page_overflow(pdf, margin=20):
+    """Check if we're near the bottom of the page and add a new page if needed"""
+    if pdf.get_y() > pdf.h - margin:
+        pdf.add_page()
+        return True
+    return False
+# --- ADDED CODE END ---
+
+def generate_cv_now(u_name, u_b_place, u_phone, u_email, u_website, u_linkedin, u_about,
+                    u_company, u_c_place, u_position, u_start_date, u_end_date, u_status_date, u_c_description,
+                    u_education_start_date, u_education_end_date, u_education_program, u_education_inititue,
+                    u_insititue_place, u_education_description, u_education_grade,
+                    u_mother_tongue, u_other_langauges, u_listeing, u_reading, u_spoken, u_spoken_inter,
+                    u_soft_skills, u_programming_skills, u_projects, u_links):
+
+    # Safe defaults for missing data
+    u_name = u_name or "User"
+    u_about = u_about or ""
+    u_soft_skills = u_soft_skills or ""
+    u_programming_skills = u_programming_skills or ""
+
+    pdf = FPDF()
+    pdf.set_margins(0, 0, 0)
+    pdf.add_page()
+
+    # --- ADDED CODE START ---
+    # Load fonts once globally
+    setup_pdf_fonts(pdf)
+    # --- ADDED CODE END ---
+
+    # --- ADDED CODE START ---
+    # Split the giant function into smaller helper functions
+    left_margin, right_margin, height_cell = create_personal_info_section(
+        pdf, u_name, u_b_place, u_phone, u_email, u_website, u_linkedin, u_about
+    )
+    
+    check_page_overflow(pdf)
+    create_work_experience_section(
+        pdf, left_margin, right_margin, height_cell,
+        u_company, u_c_place, u_position, u_start_date, u_end_date, u_status_date, u_c_description
+    )
+    
+    check_page_overflow(pdf)
+    create_education_section(
+        pdf, left_margin, right_margin, height_cell,
+        u_education_start_date, u_education_end_date, u_education_program, u_education_inititue,
+        u_insititue_place, u_education_description, u_education_grade
+    )
+    
+    check_page_overflow(pdf)
+    create_language_skills_section(
+        pdf, left_margin, right_margin, height_cell,
+        u_mother_tongue, u_other_langauges, u_listeing, u_reading, u_spoken, u_spoken_inter
+    )
+    
+    check_page_overflow(pdf)
+    create_skills_sections(
+        pdf, left_margin, right_margin, height_cell, u_soft_skills, u_programming_skills
+    )
+    
+    check_page_overflow(pdf)
+    create_projects_section(
+        pdf, left_margin, right_margin, height_cell, u_projects, u_links
+    )
+    # --- ADDED CODE END ---
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    unique_id = uuid.uuid4().hex[:6]
+    safe_name = u_name.replace(" ", "_")
     cv_name = f"CV_{safe_name}_{timestamp}_{unique_id}.pdf"
-   
-    pdf.output(cv_name)
+    cv_path = os.path.join(PDF_FOLDER, cv_name)
+    pdf.output(cv_path)
+
     return cv_name
 
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # Limit uploads to 2MB
+limiter = Limiter(get_remote_address, app=app, default_limits=["20 per minute"])  # Global limit
+# Custom handler for 429 errors
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify({
+        "status": "error", 
+        "message": "Too many requests. Please try again later."
+    }), 429
+# --- ADDED CODE START ---
+# Secure download endpoint
+@app.route('/cv-generator/<filename>')
+def download_file(filename):
+    """Secure endpoint to download generated CVs"""
+    try:
+        return send_from_directory(PDF_FOLDER, filename, as_attachment=True)
+    except FileNotFoundError:
+        logger.error(f"Requested file not found: {filename}")
+        return jsonify({"status": "error", "message": "File not found"}), 404
+# --- ADDED CODE END ---
 
-@app.route("/")
-def index():
-    return render_template("form.html")
+# --------------------------
+# API Endpoint (Added Dynamic URL)
+# --------------------------
+@app.route("/api/v1/cv-generator/cv", methods=["POST"])
+@limiter.limit("5 per minute")
+def generate_cv():
+    try:
+        # --- Personal Information ---
+        name = request.form.get('name') or "User"
+        birthplace = request.form.get('birthplace') or ""
+        phone = request.form.get('phone') or ""
+        email = request.form.get('email') or ""
+        website = request.form.get('website') or ""
+        linkedin = request.form.get('linkedin') or ""
+        about = request.form.get('about') or ""
 
-@app.route("/generate", methods=["POST"])
-def generate():
-    # Personal Information
-    name = request.form.get('name')
-    birthplace = request.form.get('birthplace')
-    phone = request.form.get('phone')
-    email = request.form.get('email')
-    website = request.form.get('website')
-    linkedin = request.form.get('linkedin')
-    address = request.form.get('address')
-    about = request.form.get('about')
-  
-    # Experience (multiple entries)
-    exp_companies = request.form.getlist('exp_company[]')
-    exp_locations = request.form.getlist('exp_location[]')
-    exp_positions = request.form.getlist('exp_position[]')
-    exp_starts = request.form.getlist('exp_start[]')
-    exp_ends = request.form.getlist('exp_end[]')
-    exp_currents = request.form.getlist('exp_current[]')
-    exp_descriptions = request.form.getlist('exp_description[]')
-  
-    # Education (multiple entries)
-    edu_institutes = request.form.getlist('edu_institute[]')
-    edu_programs = request.form.getlist('edu_program[]')
-    edu_locations = request.form.getlist('edu_location[]')
-    edu_starts = request.form.getlist('edu_start[]')
-    edu_ends = request.form.getlist('edu_end[]')
-    edu_grades = request.form.getlist('edu_grade[]')
-    edu_descriptions = request.form.getlist('edu_description[]')
-      
-    # Languages
-    mother_tongue = request.form.get('mother_tongue')
-    lang_names = request.form.getlist('lang_name[]')
-    lang_listenings = request.form.getlist('lang_listening[]')
-    lang_readings = request.form.getlist('lang_reading[]')
-    lang_spokens = request.form.getlist('lang_spoken[]')
-    lang_interactions = request.form.getlist('lang_interaction[]')
-    
-    # Skills
-    soft_skills = request.form.get('soft_skills')
-    programming_skills = request.form.get('programming_skills')
-    
-    # Projects (multiple entries)
-    project_descriptions = request.form.getlist('project_description[]')
-    
-    # Additional Links (multiple entries)
-    additional_links = request.form.getlist('additional_links[]')
-    cv_name =    generate_cv_now(name,birthplace,phone,email,website,linkedin,about,exp_companies,exp_locations,exp_positions,exp_starts,exp_ends,exp_currents,exp_descriptions,
-                                                    edu_starts,edu_ends,edu_programs,edu_institutes,edu_locations,edu_descriptions,edu_grades,
-                                                            mother_tongue,lang_names,lang_listenings,lang_readings,lang_spokens,lang_interactions,soft_skills,programming_skills,project_descriptions,additional_links
-                                                              
-                                 
-                             )
-   
-    return redirect(f"https://haseebsagheer.com/cv-generator/{cv_name}")
+        # --- Experience ---
+        exp_companies = request.form.getlist('exp_company[]')
+        exp_locations = request.form.getlist('exp_location[]')
+        exp_positions = request.form.getlist('exp_position[]')
+        exp_starts = request.form.getlist('exp_start[]')
+        exp_ends = request.form.getlist('exp_end[]')
+        exp_currents = request.form.getlist('exp_current[]')
+        exp_descriptions = request.form.getlist('exp_description[]')
+
+        # --- Education ---
+        edu_institutes = request.form.getlist('edu_institute[]')
+        edu_programs = request.form.getlist('edu_program[]')
+        edu_locations = request.form.getlist('edu_location[]')
+        edu_starts = request.form.getlist('edu_start[]')
+        edu_ends = request.form.getlist('edu_end[]')
+        edu_grades = request.form.getlist('edu_grade[]')
+        edu_descriptions = request.form.getlist('edu_description[]')
+
+        # --- Languages ---
+        mother_tongue = request.form.get('mother_tongue') or ""
+        lang_names = request.form.getlist('lang_name[]')
+        lang_listenings = request.form.getlist('lang_listening[]')
+        lang_readings = request.form.getlist('lang_reading[]')
+        lang_spokens = request.form.getlist('lang_spoken[]')
+        lang_interactions = request.form.getlist('lang_interaction[]')
+
+        # --- Skills ---
+        soft_skills = request.form.get('soft_skills') or ""
+        programming_skills = request.form.get('programming_skills') or ""
+
+        # --- Projects & Links ---
+        project_descriptions = request.form.getlist('project_description[]')
+        additional_links = request.form.getlist('additional_links[]')
+
+        # Safe filename
+        safe_name = secure_filename(name)
+
+        # Generate CV
+        cv_name = generate_cv_now(
+            safe_name, birthplace, phone, email, website, linkedin, about,
+            exp_companies, exp_locations, exp_positions, exp_starts, exp_ends, exp_currents, exp_descriptions,
+            edu_starts, edu_ends, edu_programs, edu_institutes, edu_locations, edu_descriptions, edu_grades,
+            mother_tongue, lang_names, lang_listenings, lang_readings, lang_spokens, lang_interactions,
+            soft_skills, programming_skills, project_descriptions, additional_links
+        )
+
+        # Build dynamic CV URL based on current host
+        cv_url = f"{request.host_url}cv-generator/{cv_name}"
+
+        return jsonify({
+            "status": "success",
+            "cv_url": cv_url
+        }), 200
+
+    except Exception as e:
+        # --- ADDED CODE START ---
+        # Use logging instead of print for error handling
+        logger.error(f"Error generating CV: {str(e)}")
+        return jsonify({"status": "error", "message": "Internal server error"}), 500
+        # --- ADDED CODE END ---
 
 
+# --------------------------
+# Entry Point (Development Only)
+# --------------------------
 if __name__ == "__main__":
-    app.run(debug =True,host='0.0.0.0',port=50001)
-    
-    
+    app.run(host="0.0.0.0", port=8003, debug=False, threaded=True)
