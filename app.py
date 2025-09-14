@@ -18,9 +18,6 @@ from flask_limiter.util import get_remote_address
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Global font storage
-FONTS_LOADED = False
-
 # PDF storage configuration
 PDF_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "generated_pdfs")
 os.makedirs(PDF_FOLDER, exist_ok=True)
@@ -278,14 +275,11 @@ def render_language_skills_table(pdf, lang, listening, reading, spoken_prod, spo
 
 # --- ADDED CODE START ---
 def setup_pdf_fonts(pdf):
-    """Load fonts once globally"""
-    global FONTS_LOADED
-    if not FONTS_LOADED:
-        pdf.add_font("PoppinsLarger", "", "Poppins/Poppins-Bold.ttf", uni=True)
-        pdf.add_font("PoppinsRegular", "", "Poppins/Poppins-Regular.ttf", uni=True)
-        pdf.add_font("PoppinsBold", "", "Poppins/Poppins-SemiBold.ttf", uni=True)
-        pdf.add_font("Emoji", "", "Noto_Color_Emoji/Symbola.ttf", uni=True)
-        FONTS_LOADED = True
+    """Load fonts for each PDF instance"""
+    pdf.add_font("PoppinsLarger", "", "Poppins/Poppins-Bold.ttf", uni=True)
+    pdf.add_font("PoppinsRegular", "", "Poppins/Poppins-Regular.ttf", uni=True)
+    pdf.add_font("PoppinsBold", "", "Poppins/Poppins-SemiBold.ttf", uni=True)
+    pdf.add_font("Emoji", "", "Noto_Color_Emoji/Symbola.ttf", uni=True)
 
 def create_personal_info_section(pdf, u_name, u_b_place, u_phone, u_email, u_website, u_linkedin, u_about):
     """Extract personal info section from generate_cv_now"""
@@ -667,7 +661,7 @@ def generate_cv_now(u_name, u_b_place, u_phone, u_email, u_website, u_linkedin, 
     pdf.add_page()
 
     # --- ADDED CODE START ---
-    # Load fonts once globally
+    # Load fonts for this PDF instance
     setup_pdf_fonts(pdf)
     # --- ADDED CODE END ---
 
@@ -751,80 +745,75 @@ def download_file(filename):
 # --------------------------
 # API Endpoint (Added Dynamic URL)
 # --------------------------
-@app.route("/api/v1/cv-generator/cv", methods=["POST"])
+@app.route("/cv-generator", methods=["POST"])
 @limiter.limit("5 per minute")
 def generate_cv():
     try:
-        # --- Personal Information ---
-        name = request.form.get('name') or "User"
-        birthplace = request.form.get('birthplace') or ""
-        phone = request.form.get('phone') or ""
-        email = request.form.get('email') or ""
-        website = request.form.get('website') or ""
-        linkedin = request.form.get('linkedin') or ""
-        about = request.form.get('about') or ""
+        # Check if JSON or form-data
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form  # fallback for curl or form-data testing
 
-        # --- Experience ---
-        exp_companies = request.form.getlist('exp_company[]')
-        exp_locations = request.form.getlist('exp_location[]')
-        exp_positions = request.form.getlist('exp_position[]')
-        exp_starts = request.form.getlist('exp_start[]')
-        exp_ends = request.form.getlist('exp_end[]')
-        exp_currents = request.form.getlist('exp_current[]')
-        exp_descriptions = request.form.getlist('exp_description[]')
+        # Read fields safely
+        name = data.get("full_name") or "User"
+        birthplace = data.get("place_of_birth", "")
+        phone = data.get("phone", "")
+        email = data.get("email", "")
+        website = data.get("website", "")
+        linkedin = data.get("linkedin", "")
+        about = data.get("about_me", "")
 
-        # --- Education ---
-        edu_institutes = request.form.getlist('edu_institute[]')
-        edu_programs = request.form.getlist('edu_program[]')
-        edu_locations = request.form.getlist('edu_location[]')
-        edu_starts = request.form.getlist('edu_start[]')
-        edu_ends = request.form.getlist('edu_end[]')
-        edu_grades = request.form.getlist('edu_grade[]')
-        edu_descriptions = request.form.getlist('edu_description[]')
+        work_experience = data.get("work_experience", [])
+        education = data.get("education", [])
+        languages = data.get("languages", [])
+        projects = data.get("projects", [])
+        additional_links = data.get("additional_links", [])
+        skills = data.get("skills", {})
 
-        # --- Languages ---
-        mother_tongue = request.form.get('mother_tongue') or ""
-        lang_names = request.form.getlist('lang_name[]')
-        lang_listenings = request.form.getlist('lang_listening[]')
-        lang_readings = request.form.getlist('lang_reading[]')
-        lang_spokens = request.form.getlist('lang_spoken[]')
-        lang_interactions = request.form.getlist('lang_interaction[]')
+        # Now prepare lists for your PDF function
+        exp_companies = [w["companyName"] for w in work_experience]
+        exp_locations = [w["companyLocation"] for w in work_experience]
+        exp_positions = [w["position"] for w in work_experience]
+        exp_starts = [w["startDate"] for w in work_experience]
+        exp_ends = [w["endDate"] for w in work_experience]
+        exp_currents = [str(w["stillWorking"]) for w in work_experience]
+        exp_descriptions = [w["description"] for w in work_experience]
 
-        # --- Skills ---
-        soft_skills = request.form.get('soft_skills') or ""
-        programming_skills = request.form.get('programming_skills') or ""
+        edu_institutes = [e["institute"] for e in education]
+        edu_programs = [e["program"] for e in education]
+        edu_locations = [e["location"] for e in education]
+        edu_starts = [e["startDate"] for e in education]
+        edu_ends = [e["endDate"] for e in education]
+        edu_grades = [e["grade"] for e in education]
+        edu_descriptions = [e["description"] for e in education]
 
-        # --- Projects & Links ---
-        project_descriptions = request.form.getlist('project_description[]')
-        additional_links = request.form.getlist('additional_links[]')
+        mother_tongue = data.get("mother_tongue", "")
+        lang_names = [l["language"] for l in languages]
+        lang_listenings = [l["listening"] for l in languages]
+        lang_readings = [l["reading"] for l in languages]
+        lang_spokens = [l["spoken"] for l in languages]
+        lang_interactions = [l["spokenInteraction"] for l in languages]
 
-        # Safe filename
-        safe_name = secure_filename(name)
+        soft_skills = ",".join(skills.get("communication_skills", []))
+        programming_skills = ",".join(skills.get("programming_skills", []))
 
-        # Generate CV
+        # Generate CV PDF
         cv_name = generate_cv_now(
-            safe_name, birthplace, phone, email, website, linkedin, about,
+            name, birthplace, phone, email, website, linkedin, about,
             exp_companies, exp_locations, exp_positions, exp_starts, exp_ends, exp_currents, exp_descriptions,
             edu_starts, edu_ends, edu_programs, edu_institutes, edu_locations, edu_descriptions, edu_grades,
             mother_tongue, lang_names, lang_listenings, lang_readings, lang_spokens, lang_interactions,
-            soft_skills, programming_skills, project_descriptions, additional_links
+            soft_skills, programming_skills, projects, additional_links
         )
 
-        # Build dynamic CV URL based on current host
-        cv_url = f"{request.host_url}cv-generator/{cv_name}"
+        cv_url = f"https://haseebsagheer.com/api/cv-generator/{cv_name}"
 
-        return jsonify({
-            "status": "success",
-            "cv_url": cv_url
-        }), 200
+        return jsonify({"status": "success", "cv_url": cv_url}), 200
 
     except Exception as e:
-        # --- ADDED CODE START ---
-        # Use logging instead of print for error handling
         logger.error(f"Error generating CV: {str(e)}")
         return jsonify({"status": "error", "message": "Internal server error"}), 500
-        # --- ADDED CODE END ---
-
 
 # --------------------------
 # Entry Point (Development Only)
